@@ -60,6 +60,10 @@ public class KekService {
   }
 
   private void validateActiveKey() throws Exception {
+    if (!keyStore.containsAlias(alias)) {
+      throw new IllegalStateException("KEK `" + alias + "` not found in keystore");
+    }
+
     var activeKey = keyStore.getKey(alias, password);
 
     if (!(activeKey instanceof SecretKey sk)) {
