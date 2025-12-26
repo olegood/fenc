@@ -32,5 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-### Scripts ###
-./scripts/
+### App ###
+scripts/
+upload/
