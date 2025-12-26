@@ -52,30 +52,10 @@ public class KekService {
         keyStore.load(is, this.password);
       }
 
-      validateActiveKey();
+      loadKekByAlias(alias);
 
     } catch (Exception e) {
       throw new IllegalStateException("Failed to initialize KEK keystore", e);
-    }
-  }
-
-  private void validateActiveKey() throws Exception {
-    if (!keyStore.containsAlias(alias)) {
-      throw new IllegalStateException("KEK `" + alias + "` not found in keystore");
-    }
-
-    var activeKey = keyStore.getKey(alias, password);
-
-    if (!(activeKey instanceof SecretKey sk)) {
-      throw new IllegalStateException("KEK is not a SecretKey");
-    }
-
-    if (!"AES".equals(sk.getAlgorithm())) {
-      throw new IllegalStateException("KEK algorithm must be AES");
-    }
-
-    if (sk.getEncoded().length != 32) {
-      throw new IllegalStateException("KEK must be 256-bit");
     }
   }
 
@@ -106,5 +86,27 @@ public class KekService {
    */
   public String getActiveAlias() {
     return alias;
+  }
+
+  public SecretKey loadKekByAlias(String alias) throws Exception {
+    if (!keyStore.containsAlias(alias)) {
+      throw new IllegalStateException("KEK `" + alias + "` not found in keystore");
+    }
+
+    var key = keyStore.getKey(alias, password);
+
+    if (!(key instanceof SecretKey kek)) {
+      throw new IllegalStateException("KEK is not a SecretKey");
+    }
+
+    if (!"AES".equals(kek.getAlgorithm())) {
+      throw new IllegalStateException("KEK algorithm must be AES");
+    }
+
+    if (kek.getEncoded().length != 32) {
+      throw new IllegalStateException("KEK must be 256-bit");
+    }
+
+    return kek;
   }
 }
