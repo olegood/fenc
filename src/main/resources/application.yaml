@@ -3,6 +3,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/fenc
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
+crypto:
+  kek:
+    keystore-type: PKCS12
+    location: file:/opt/app/secrets/kek.p12
+    password: ${KEK_STORE_PASSWORD}
+    alias: kek-2026-01
 logging:
   level:
     sun.rmi: OFF
