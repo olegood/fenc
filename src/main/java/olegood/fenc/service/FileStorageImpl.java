@@ -3,12 +3,9 @@ package olegood.fenc.service;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
 import java.util.UUID;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import olegood.fenc.crypto.CryptoService;
@@ -55,17 +52,17 @@ public class FileStorageImpl implements FileStorage {
 
     var encryptedDek = cryptoService.encrypt(dek.getEncoded(), kekService.getActiveKek(), iv);
 
-    var a = new Attachment();
-    a.setDocument(document);
-    a.setFileName(file.getOriginalFilename());
-    a.setLocation(location.toString());
-    a.setEncryptedDek(encryptedDek);
-    a.setKekVersion(kekService.getActiveAlias());
-    a.setIv(iv);
+    var attachment =
+        new Attachment()
+            .setDocument(document)
+            .setFileName(file.getOriginalFilename())
+            .setLocation(location.toString())
+            .setEncryptedDek(encryptedDek)
+            .setKekVersion(kekService.getActiveAlias())
+            .setIv(iv);
 
-    attachmentRepository.save(a);
-
-    return a.getId();
+    attachmentRepository.save(attachment);
+    return attachment.getId();
   }
 
   @Override
@@ -74,7 +71,7 @@ public class FileStorageImpl implements FileStorage {
 
     Path location = Path.of(attachment.getLocation());
 
-    try  {
+    try {
       InputStream encryptedStream = Files.newInputStream(location);
 
       byte[] rawDek =
@@ -83,23 +80,13 @@ public class FileStorageImpl implements FileStorage {
 
       var dek = new SecretKeySpec(rawDek, "AES");
 
-      InputStream decryptedStream =
-          new CipherInputStream(encryptedStream, initDecryptCipher(dek, attachment.getIv()));
+      Cipher cipher = cryptoService.initCipher(Cipher.DECRYPT_MODE, dek, attachment.getIv());
+      InputStream decryptedStream = new CipherInputStream(encryptedStream, cipher);
 
       return new AttachmentDownload(
           decryptedStream, attachment.getFileName(), Files.size(location));
     } catch (Exception e) {
       throw new IllegalStateException("Download failed", e);
-    }
-  }
-
-  private Cipher initDecryptCipher(SecretKey dek, byte[] iv) {
-    try {
-      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-      cipher.init(Cipher.DECRYPT_MODE, dek, new GCMParameterSpec(128, iv));
-      return cipher;
-    } catch (GeneralSecurityException e) {
-      throw new IllegalStateException(e);
     }
   }
 }

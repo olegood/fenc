@@ -37,11 +37,29 @@ public class CryptoService {
 
   private byte[] getBytes(int operationMode, SecretKey key, byte[] iv, byte[] source) {
     try {
-      var cipher = Cipher.getInstance("AES/GCM/NoPadding");
-      cipher.init(operationMode, key, new GCMParameterSpec(128, iv));
+      var cipher = initCipher(operationMode, key, iv);
       return cipher.doFinal(source);
     } catch (GeneralSecurityException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  /**
+   * Initializes a {@link Cipher} instance for cryptographic operations using AES-GCM mode with no
+   * padding. The method sets up the cipher with the specified operation mode, encryption key, and
+   * initialization vector (IV).
+   *
+   * @param operationMode the operation mode for the cipher, either {@link Cipher#ENCRYPT_MODE} or
+   *     {@link Cipher#DECRYPT_MODE}.
+   * @param key the secret key to be used for encryption or decryption, of type {@link SecretKey}.
+   * @param iv the initialization vector (IV) to be used by the AES-GCM algorithm, as a byte array.
+   * @return a configured {@link Cipher} instance ready for encryption or decryption.
+   * @throws GeneralSecurityException if an error occurs while initializing the cipher.
+   */
+  public Cipher initCipher(int operationMode, SecretKey key, byte[] iv)
+      throws GeneralSecurityException {
+    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+    cipher.init(operationMode, key, new GCMParameterSpec(128, iv));
+    return cipher;
   }
 }

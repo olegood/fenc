@@ -11,8 +11,10 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.JdbcTypeCode;
 
+@Accessors(chain = true)
 @Data
 @Entity
 @Table(name = "ATTACHMENT")
