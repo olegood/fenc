@@ -25,6 +25,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class KekRotationStepConfig {
 
+  private static final int chunkSize = 100;
+
   @Bean
   public Step kekRotationStep(
       JobRepository jobRepository,
@@ -34,7 +36,7 @@ public class KekRotationStepConfig {
       ItemWriter<Attachment> attachmentWriter) {
 
     return new StepBuilder("kekRotationStep", jobRepository)
-        .<Attachment, Attachment>chunk(100)
+        .<Attachment, Attachment>chunk(chunkSize)
         .transactionManager(transactionManager)
         .reader(attachmentReader)
         .processor(kekRotationProcessor)
@@ -52,7 +54,7 @@ public class KekRotationStepConfig {
         .repository(repository)
         .methodName("findByKekVersion")
         .arguments(List.of(oldKekAlias))
-        .pageSize(100)
+        .pageSize(chunkSize)
         .sorts(Map.of("id", Sort.Direction.ASC))
         .build();
   }
