@@ -2,13 +2,12 @@ package olegood.fenc.web;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import olegood.fenc.batch.KekRotationJobRequest;
 import org.springframework.batch.core.job.Job;
-import org.springframework.batch.core.job.JobExecution;
-import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,31 +21,29 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/jobs")
 public class KekRotationJobController {
 
-  private final JobLauncher jobLauncher;
+  private final JobOperator jobOperator;
   private final Job kekRotationJob;
 
   @PostMapping("/kekRotationJob/launch")
-  public ResponseEntity<?> launch(@RequestBody KekRotationJobRequest request) throws Exception {
+  public ResponseEntity<?> launch(@RequestBody KekRotationJobRequest request) {
 
     validate(request);
 
-    JobParameters params =
+    var params =
         new JobParametersBuilder()
             .addString("oldKekAlias", request.oldKekAlias())
             .addString("newKekAlias", request.newKekAlias())
-            .addLong("runId", System.currentTimeMillis()) // ensures uniqueness
+            .addLong("runId", System.currentTimeMillis())
             .toJobParameters();
 
     try {
-      JobExecution execution = jobLauncher.run(kekRotationJob, params);
-
+      var execution = jobOperator.start(kekRotationJob, params);
       return ResponseEntity.accepted()
           .body(
               Map.of(
                   "jobName", kekRotationJob.getName(),
                   "jobExecutionId", execution.getId(),
                   "status", execution.getStatus().toString()));
-
     } catch (JobExecutionAlreadyRunningException e) {
       return ResponseEntity.status(HttpStatus.CONFLICT).body("KEK rotation job is already running");
 
