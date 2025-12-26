@@ -1,0 +1,30 @@
+CREATE TABLE ATTACHMENT
+(
+    ATTACHMENT_ID UUID PRIMARY KEY,
+    DOCUMENT_ID   UUID         NOT NULL,
+
+    FILE_NAME     VARCHAR(255) NOT NULL,
+    LOCATION      TEXT         NOT NULL,
+
+    ENCRYPTED_DEK BYTEA        NOT NULL,
+    DEK_VERSION   VARCHAR(16)  NOT NULL,
+    KEK_VERSION   VARCHAR(64)  NOT NULL,
+
+    IV            BYTEA        NOT NULL CHECK (octet_length(iv) = 12),
+
+    CREATED_AT    TIMESTAMPTZ  NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_attachment_document
+        FOREIGN KEY (DOCUMENT_ID)
+            REFERENCES DOCUMENT (DOCUMENT_ID)
+            ON DELETE RESTRICT
+);
+
+CREATE INDEX idx_attachment_document
+    ON ATTACHMENT (DOCUMENT_ID);
+
+CREATE INDEX idx_attachment_created
+    ON ATTACHMENT (CREATED_AT);
+
+CREATE INDEX idx_attachment_kek_version
+    ON ATTACHMENT (KEK_VERSION);

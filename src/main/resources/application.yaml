@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fenc
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+logging:
+  level:
+    sun.rmi: OFF
