@@ -38,35 +38,43 @@ public class FileStorageImpl implements FileStorage {
 
     var document = documentRepository.findById(documentId).orElseThrow();
 
+    // 1. Generate a fresh DEK (per attachment)
     var dek = dekService.generateDek();
-    var iv = dekService.randomIv();
 
-    var encryptedContent = cryptoService.encrypt(file.getBytes(), dek, iv);
+    // 2. Generate independent IVs
+    var fileIv = dekService.randomIv(); // for file encryption
+    var dekIv = dekService.randomIv(); // for DEK encryption
 
+    // 3. Encrypt file content with DEK + FILE_IV
+    var encryptedContent = cryptoService.encrypt(file.getBytes(), dek, fileIv);
+
+    // 4. Persist encrypted file
     var documentDir =
         Path.of("upload/").resolve(document.getOrganizationCode()).resolve(documentId.toString());
     Files.createDirectories(documentDir);
     var location = documentDir.resolve(file.getOriginalFilename() + ".enc");
-
     Files.write(location, encryptedContent);
 
-    var encryptedDek = cryptoService.encrypt(dek.getEncoded(), kekService.getActiveKek(), iv);
+    // 5. Encrypt DEK with KEK + DEK_IV
+    var encryptedDek = cryptoService.encrypt(dek.getEncoded(), kekService.getActiveKek(), dekIv);
 
+    // 6. Persist metadata
     var attachment =
         new Attachment()
             .setDocument(document)
             .setFileName(file.getOriginalFilename())
             .setLocation(location.toString())
+            .setFileIv(fileIv)
+            .setDekIv(dekIv)
             .setEncryptedDek(encryptedDek)
-            .setKekVersion(kekService.getActiveAlias())
-            .setIv(iv);
+            .setKekVersion(kekService.getActiveAlias());
 
     attachmentRepository.save(attachment);
     return attachment.getId();
   }
 
   @Override
-  public AttachmentDownload load(UUID attachmentId) throws Exception {
+  public AttachmentDownload load(UUID attachmentId) {
     var attachment = attachmentRepository.findById(attachmentId).orElseThrow();
 
     Path location = Path.of(attachment.getLocation());
@@ -76,11 +84,11 @@ public class FileStorageImpl implements FileStorage {
 
       byte[] rawDek =
           cryptoService.decrypt(
-              attachment.getEncryptedDek(), kekService.getActiveKek(), attachment.getIv());
+              attachment.getEncryptedDek(), kekService.getActiveKek(), attachment.getDekIv());
 
       var dek = new SecretKeySpec(rawDek, "AES");
 
-      Cipher cipher = cryptoService.initCipher(Cipher.DECRYPT_MODE, dek, attachment.getIv());
+      Cipher cipher = cryptoService.initCipher(Cipher.DECRYPT_MODE, dek, attachment.getFileIv());
       InputStream decryptedStream = new CipherInputStream(encryptedStream, cipher);
 
       return new AttachmentDownload(

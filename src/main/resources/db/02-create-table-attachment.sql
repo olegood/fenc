@@ -1,17 +1,20 @@
 CREATE TABLE ATTACHMENT
 (
-    ATTACHMENT_ID UUID PRIMARY KEY,
-    DOCUMENT_ID   UUID         NOT NULL,
+    ATTACHMENT_ID   UUID PRIMARY KEY,
+    DOCUMENT_ID     UUID         NOT NULL,
 
-    FILE_NAME     VARCHAR(255) NOT NULL,
-    LOCATION      TEXT         NOT NULL,
+    FILE_NAME       VARCHAR(255) NOT NULL,
+    LOCATION        TEXT         NOT NULL,
 
-    ENCRYPTED_DEK BYTEA        NOT NULL,
-    KEK_VERSION   VARCHAR(64)  NOT NULL,
+    FILE_IV         BYTEA        NOT NULL CHECK (octet_length(FILE_IV) = 12),
+    DEK_IV          BYTEA        NOT NULL CHECK (octet_length(DEK_IV) = 12),
 
-    IV            BYTEA        NOT NULL CHECK (octet_length(iv) = 12),
+    ENCRYPTED_DEK   BYTEA        NOT NULL,
+    KEK_VERSION     VARCHAR(64)  NOT NULL,
 
-    CREATED_AT    TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    DEK_COMPROMISED BOOLEAN      NOT NULL DEFAULT FALSE,
+
+    CREATED_AT      TIMESTAMPTZ  NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_attachment_document
         FOREIGN KEY (DOCUMENT_ID)
@@ -27,3 +30,7 @@ CREATE INDEX idx_attachment_created
 
 CREATE INDEX idx_attachment_kek_version
     ON ATTACHMENT (KEK_VERSION);
+
+CREATE INDEX idx_attachment_dek_compromised
+    ON ATTACHMENT (DEK_COMPROMISED)
+    WHERE DEK_COMPROMISED = TRUE;

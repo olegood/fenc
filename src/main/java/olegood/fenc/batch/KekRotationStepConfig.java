@@ -74,10 +74,10 @@ public class KekRotationStepConfig {
     return attachment -> {
 
       // Decrypt DEK with old KEK
-      byte[] rawDek = crypto.decrypt(attachment.getEncryptedDek(), oldKek, attachment.getIv());
+      byte[] rawDek = crypto.decrypt(attachment.getEncryptedDek(), oldKek, attachment.getDekIv());
 
       // Encrypt DEK with new KEK
-      byte[] reEncryptedDek = crypto.encrypt(rawDek, newKek, attachment.getIv());
+      byte[] reEncryptedDek = crypto.encrypt(rawDek, newKek, attachment.getDekIv());
 
       attachment.setEncryptedDek(reEncryptedDek);
       attachment.setKekVersion(newAlias);

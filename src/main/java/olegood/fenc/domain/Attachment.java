@@ -35,16 +35,22 @@ public class Attachment {
   @Column(name = "LOCATION")
   private String location;
 
+  @Column(name = "FILE_IV", length = 12, nullable = false)
+  private byte[] fileIv;
+
+  @Column(name = "DEK_IV", length = 12, nullable = false)
+  private byte[] dekIv;
+
   @Lob
   @JdbcTypeCode(java.sql.Types.BINARY)
   @Column(name = "ENCRYPTED_DEK", columnDefinition = "BYTEA", nullable = false)
   private byte[] encryptedDek;
 
+  @Column(name = "DEK_COMPROMISED", nullable = false)
+  private boolean dekCompromised;
+
   @Column(name = "KEK_VERSION")
   private String kekVersion;
-
-  @Column(name = "IV", length = 12)
-  private byte[] iv;
 
   @Column(name = "CREATED_AT")
   private Instant createdAt = Instant.now();
