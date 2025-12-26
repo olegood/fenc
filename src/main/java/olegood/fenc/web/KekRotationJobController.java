@@ -10,6 +10,7 @@ import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class KekRotationJobController {
   private final JobOperator jobOperator;
   private final Job kekRotationJob;
 
+  @PreAuthorize("hasRole('KEY_MANAGEMENT_ADMIN') and hasRole('BREAK_GLASS')")
   @PostMapping("/kekRotationJob/launch")
   public ResponseEntity<?> launch(@RequestBody KekRotationJobRequest request) {
 
