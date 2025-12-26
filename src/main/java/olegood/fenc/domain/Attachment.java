@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
+import org.hibernate.annotations.JdbcTypeCode;
 
 @Data
 @Entity
@@ -33,11 +34,9 @@ public class Attachment {
   private String location;
 
   @Lob
-  @Column(name = "ENCRYPTED_DEK")
+  @JdbcTypeCode(java.sql.Types.BINARY)
+  @Column(name = "ENCRYPTED_DEK", columnDefinition = "BYTEA", nullable = false)
   private byte[] encryptedDek;
-
-  @Column(name = "DEK_VERSION")
-  private String dekVersion;
 
   @Column(name = "KEK_VERSION")
   private String kekVersion;

@@ -7,7 +7,6 @@ CREATE TABLE ATTACHMENT
     LOCATION      TEXT         NOT NULL,
 
     ENCRYPTED_DEK BYTEA        NOT NULL,
-    DEK_VERSION   VARCHAR(16)  NOT NULL,
     KEK_VERSION   VARCHAR(64)  NOT NULL,
 
     IV            BYTEA        NOT NULL CHECK (octet_length(iv) = 12),

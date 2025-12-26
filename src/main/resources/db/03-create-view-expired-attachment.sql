@@ -1,4 +1,4 @@
-CREATE VIEW expired_attachment AS
+CREATE OR REPLACE VIEW expired_attachment AS
 SELECT a.*
 FROM ATTACHMENT a
          JOIN DOCUMENT d ON d.DOCUMENT_ID = a.DOCUMENT_ID

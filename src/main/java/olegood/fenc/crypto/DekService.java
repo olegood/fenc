@@ -34,9 +34,7 @@ public class DekService {
    * @return the encrypted representation of the DEK as a byte array.
    */
   public byte[] encryptDek(SecretKey dek, SecretKey kek) {
-    var randomIv = new byte[12];
-    random.nextBytes(randomIv);
-    return cryptoService.encrypt(dek.getEncoded(), kek, randomIv);
+    return cryptoService.encrypt(dek.getEncoded(), kek, randomIv());
   }
 
   /**
@@ -52,5 +50,17 @@ public class DekService {
   public SecretKey decryptDek(byte[] encryptedDek, SecretKey kek, byte[] iv) {
     byte[] key = cryptoService.decrypt(encryptedDek, kek, iv);
     return new SecretKeySpec(key, SECRET_KEY_ALGORITHM);
+  }
+
+  /**
+   * Generates a random initialization vector (IV) for cryptographic operations. The IV is a 12-byte
+   * array populated with random values using a cryptographically secure random number generator.
+   *
+   * @return a new 12-byte array representing the randomly generated initialization vector.
+   */
+  public byte[] randomIv() {
+    var iv = new byte[12];
+    random.nextBytes(iv);
+    return iv;
   }
 }
