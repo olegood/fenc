@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.UUID;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import olegood.fenc.crypto.CryptoService;
 import olegood.fenc.crypto.DekService;
@@ -56,7 +55,7 @@ public class FileStorageImpl implements FileStorage {
     Files.write(location, encryptedContent);
 
     // 5. Encrypt DEK with KEK + DEK_IV
-    var encryptedDek = cryptoService.encrypt(dek.getEncoded(), kekService.getActiveKek(), dekIv);
+    var encryptedDek = dekService.encryptDek(dek, kekService.getActiveKek(), dekIv);
 
     // 6. Persist metadata
     var attachment =
@@ -81,12 +80,9 @@ public class FileStorageImpl implements FileStorage {
 
     try {
       InputStream encryptedStream = Files.newInputStream(location);
-
-      byte[] rawDek =
-          cryptoService.decrypt(
+      var dek =
+          dekService.decryptDek(
               attachment.getEncryptedDek(), kekService.getActiveKek(), attachment.getDekIv());
-
-      var dek = new SecretKeySpec(rawDek, "AES");
 
       Cipher cipher = cryptoService.initCipher(Cipher.DECRYPT_MODE, dek, attachment.getFileIv());
       InputStream decryptedStream = new CipherInputStream(encryptedStream, cipher);

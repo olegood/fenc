@@ -26,15 +26,17 @@ public class DekService {
   }
 
   /**
-   * Encrypts a Data Encryption Key (DEK) using a Key Encryption Key (KEK) and a randomly generated
-   * initialization vector (IV). The method uses AES-GCM mode for encryption.
+   * Encrypts a Data Encryption Key (DEK) using a Key Encryption Key (KEK) and an initialization
+   * vector (IV). The method utilizes AES-GCM mode encryption to produce a secure encrypted
+   * representation of the DEK.
    *
-   * @param dek the Data Encryption Key to be encrypted, represented as a {@link SecretKey}.
-   * @param kek the Key Encryption Key used to encrypt the DEK, represented as a {@link SecretKey}.
-   * @return the encrypted representation of the DEK as a byte array.
+   * @param dek the Data Encryption Key to be encrypted, represented as a {@link SecretKey}
+   * @param kek the Key Encryption Key used to encrypt the DEK, represented as a {@link SecretKey}
+   * @param iv the initialization vector used by the algorithm for encryption, as a byte array
+   * @return the encrypted representation of the DEK, as a byte array
    */
-  public byte[] encryptDek(SecretKey dek, SecretKey kek) {
-    return cryptoService.encrypt(dek.getEncoded(), kek, randomIv());
+  public byte[] encryptDek(SecretKey dek, SecretKey kek, byte[] iv) {
+    return cryptoService.encrypt(dek.getEncoded(), kek, iv);
   }
 
   /**

@@ -6,7 +6,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Optional;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import olegood.fenc.crypto.CryptoService;
 import olegood.fenc.crypto.DekService;
 import olegood.fenc.crypto.KekService;
@@ -71,9 +70,8 @@ public class DekRotationStepConfig {
       // backward compatibility: as previously uploaded files used only 'iv' (file_iv) value
       byte[] iv = Optional.ofNullable(attachment.getDekIv()).orElse(attachment.getFileIv());
 
-      byte[] oldDekBytes = crypto.decrypt(attachment.getEncryptedDek(), activeKek, iv);
-
-      SecretKey oldDek = new SecretKeySpec(oldDekBytes, "AES");
+      var oldDek = dekService.decryptDek(attachment.getEncryptedDek(), activeKek, iv);
+      crypto.decrypt(attachment.getEncryptedDek(), activeKek, iv);
 
       // 2. Decrypt file
       Path path = Path.of(attachment.getLocation());
@@ -92,7 +90,7 @@ public class DekRotationStepConfig {
       Files.write(path, reEncryptedFile, StandardOpenOption.TRUNCATE_EXISTING);
 
       // 5. Encrypt new DEK with active KEK
-      byte[] encryptedNewDek = crypto.encrypt(newDek.getEncoded(), activeKek, newDekIv);
+      var encryptedNewDek = dekService.encryptDek(newDek, activeKek, newDekIv);
 
       // 6. Update metadata
       attachment.setEncryptedDek(encryptedNewDek);

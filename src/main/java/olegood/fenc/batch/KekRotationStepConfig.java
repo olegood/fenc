@@ -3,7 +3,7 @@ package olegood.fenc.batch;
 import java.util.List;
 import java.util.Map;
 import javax.crypto.SecretKey;
-import olegood.fenc.crypto.CryptoService;
+import olegood.fenc.crypto.DekService;
 import olegood.fenc.crypto.KekService;
 import olegood.fenc.domain.Attachment;
 import olegood.fenc.repository.AttachmentRepository;
@@ -63,7 +63,7 @@ public class KekRotationStepConfig {
   @StepScope
   public ItemProcessor<Attachment, Attachment> kekRotationProcessor(
       KekService kekService,
-      CryptoService crypto,
+      DekService dekService,
       @Value("#{jobParameters['oldKekAlias']}") String oldAlias,
       @Value("#{jobParameters['newKekAlias']}") String newAlias)
       throws Exception {
@@ -74,10 +74,10 @@ public class KekRotationStepConfig {
     return attachment -> {
 
       // Decrypt DEK with old KEK
-      byte[] rawDek = crypto.decrypt(attachment.getEncryptedDek(), oldKek, attachment.getDekIv());
+      var dek = dekService.decryptDek(attachment.getEncryptedDek(), oldKek, attachment.getDekIv());
 
       // Encrypt DEK with new KEK
-      byte[] reEncryptedDek = crypto.encrypt(rawDek, newKek, attachment.getDekIv());
+      var reEncryptedDek = dekService.encryptDek(dek, newKek, attachment.getDekIv());
 
       attachment.setEncryptedDek(reEncryptedDek);
       attachment.setKekVersion(newAlias);
