@@ -1,0 +1,56 @@
+package olegood.fenc.crypto;
+
+import java.security.SecureRandom;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@RequiredArgsConstructor
+@Service
+public class DekService {
+
+  private static final String SECRET_KEY_ALGORITHM = "AES";
+
+  private final SecureRandom random = new SecureRandom();
+  private final CryptoService cryptoService;
+
+  /**
+   * Generates a new Data Encryption Key (DEK) securely. The DEK is created as a 256-bit AES key
+   * using a cryptographically secure random number generator.
+   *
+   * @return a newly generated {@link SecretKey} representing the DEK.
+   */
+  public SecretKey generateDek() {
+    return new SecretKeySpec(random.generateSeed(32), SECRET_KEY_ALGORITHM);
+  }
+
+  /**
+   * Encrypts a Data Encryption Key (DEK) using a Key Encryption Key (KEK) and a randomly generated
+   * initialization vector (IV). The method uses AES-GCM mode for encryption.
+   *
+   * @param dek the Data Encryption Key to be encrypted, represented as a {@link SecretKey}.
+   * @param kek the Key Encryption Key used to encrypt the DEK, represented as a {@link SecretKey}.
+   * @return the encrypted representation of the DEK as a byte array.
+   */
+  public byte[] encryptDek(SecretKey dek, SecretKey kek) {
+    var randomIv = new byte[12];
+    random.nextBytes(randomIv);
+    return cryptoService.encrypt(dek.getEncoded(), kek, randomIv);
+  }
+
+  /**
+   * Decrypts an encrypted Data Encryption Key (DEK) using a Key Encryption Key (KEK) and an
+   * initialization vector (IV). The method utilizes AES-GCM mode for decryption.
+   *
+   * @param encryptedDek the encrypted representation of the Data Encryption Key, as a byte array
+   * @param kek the Key Encryption Key used to decrypt the DEK, represented as a {@link SecretKey}
+   * @param iv the initialization vector (IV) used by the AES-GCM algorithm for decryption, as a
+   *     byte array
+   * @return the decrypted Data Encryption Key as a {@link SecretKey}
+   */
+  public SecretKey decryptDek(byte[] encryptedDek, SecretKey kek, byte[] iv) {
+    byte[] key = cryptoService.decrypt(encryptedDek, kek, iv);
+    return new SecretKeySpec(key, SECRET_KEY_ALGORITHM);
+  }
+}
