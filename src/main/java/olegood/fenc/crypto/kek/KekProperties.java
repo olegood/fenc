@@ -1,4 +1,4 @@
-package olegood.fenc.crypto;
+package olegood.fenc.crypto.kek;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;

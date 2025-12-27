@@ -8,7 +8,7 @@ import java.util.Optional;
 import javax.crypto.SecretKey;
 import olegood.fenc.crypto.CryptoService;
 import olegood.fenc.crypto.DekService;
-import olegood.fenc.crypto.KekService;
+import olegood.fenc.crypto.kek.KekService;
 import olegood.fenc.domain.Attachment;
 import olegood.fenc.repository.AttachmentRepository;
 import org.springframework.batch.core.repository.JobRepository;

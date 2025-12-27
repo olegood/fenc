@@ -9,7 +9,7 @@ import javax.crypto.CipherInputStream;
 import lombok.RequiredArgsConstructor;
 import olegood.fenc.crypto.CryptoService;
 import olegood.fenc.crypto.DekService;
-import olegood.fenc.crypto.KekService;
+import olegood.fenc.crypto.kek.KekService;
 import olegood.fenc.domain.Attachment;
 import olegood.fenc.repository.AttachmentRepository;
 import olegood.fenc.repository.DocumentRepository;

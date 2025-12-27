@@ -1,4 +1,4 @@
-package olegood.fenc.crypto;
+package olegood.fenc.crypto.kek;
 
 import java.security.KeyStore;
 import javax.crypto.SecretKey;
