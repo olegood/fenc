@@ -2,8 +2,6 @@ package olegood.fenc.crypto;
 
 import java.security.KeyStore;
 import javax.crypto.SecretKey;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,17 +13,15 @@ import org.springframework.stereotype.Service;
 public class KekService {
 
   /**
-   * Represents a Java {@link KeyStore} instance used for securely storing and managing
-   * cryptographic keys within the context of the service. The keystore is primarily employed to
-   * load and manage the KEK, which is then used for encrypting or decrypting Data Encryption Keys
-   * (DEKs) within the broader cryptographic service implementation.
+   * Represents the {@link KeyStore} instance used for securely storing and managing cryptographic
+   * keys, including the Key Encryption Key (KEK) used in encryption and decryption processes.
    */
   private final KeyStore keyStore;
 
   /**
-   * Stores the password used to access the keystore. This password is converted to a character
-   * array for secure handling in memory and is used during the keystore initialization and
-   * retrieval of cryptographic keys.
+   * Represents the password used to unlock the {@link KeyStore} and retrieve cryptographic keys.
+   * Note: The password is stored as a character array to minimize security risks associated with
+   * string immutability and to facilitate secure erasure of sensitive data from memory.
    */
   private final char[] password;
 
@@ -36,26 +32,17 @@ public class KekService {
    */
   private final String alias;
 
-  public KekService(
-      @Value("${crypto.kek.keystore-type}") String keyStoreType,
-      @Value("${crypto.kek.location}") Resource location,
-      @Value("${crypto.kek.password}") String password,
-      @Value("${crypto.kek.alias}") String alias) {
+  public KekService(KekProperties kekProps) {
+    password = kekProps.password().toCharArray();
+    alias = kekProps.alias();
 
-    try {
-      this.password = password.toCharArray();
-      this.alias = alias;
-
-      this.keyStore = KeyStore.getInstance(keyStoreType);
-
-      try (var is = location.getInputStream()) {
-        keyStore.load(is, this.password);
-      }
+    try (var is = kekProps.location().getInputStream()) {
+      keyStore = KeyStore.getInstance(kekProps.keyStoreType());
+      keyStore.load(is, password);
 
       loadKekByAlias(alias);
-
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to initialize KEK keystore", e);
+      throw new IllegalStateException("Failed to load KEK keystore: " + kekProps.location(), e);
     }
   }
 
@@ -71,7 +58,7 @@ public class KekService {
    */
   public SecretKey getActiveKek() {
     try {
-      return (SecretKey) keyStore.getKey(alias, password);
+      return loadKekByAlias(alias);
     } catch (Exception e) {
       throw new IllegalStateException("Unable to load active KEK", e);
     }
