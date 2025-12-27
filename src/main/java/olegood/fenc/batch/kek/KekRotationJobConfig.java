@@ -1,4 +1,4 @@
-package olegood.fenc.batch;
+package olegood.fenc.batch.kek;
 
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;

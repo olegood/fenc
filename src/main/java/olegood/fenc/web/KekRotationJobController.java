@@ -2,7 +2,7 @@ package olegood.fenc.web;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import olegood.fenc.batch.KekRotationJobRequest;
+import olegood.fenc.batch.kek.KekRotationJobRequest;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
