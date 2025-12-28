@@ -11,4 +11,6 @@ public interface AttachmentRepository extends JpaRepository<Attachment, UUID> {
     Page<Attachment> findByKekVersion(String kekVersion, Pageable pageable);
 
     Page<Attachment> findByDekCompromisedTrue(Pageable pageable);
+
+    Page<Attachment> findByChecksumIsNull(Pageable pageable);
 }

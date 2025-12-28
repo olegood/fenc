@@ -52,6 +52,9 @@ public class Attachment {
   @Column(name = "KEK_VERSION")
   private String kekVersion;
 
+  @Column(name = "ENCRYPTED_CRC32C")
+  private Long checksum;
+
   @Column(name = "CREATED_AT")
   private Instant createdAt = Instant.now();
 }

@@ -6,6 +6,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Optional;
 import javax.crypto.SecretKey;
+
+import olegood.fenc.checksum.ChecksumService;
 import olegood.fenc.crypto.CryptoService;
 import olegood.fenc.crypto.DekService;
 import olegood.fenc.crypto.kek.KekService;
@@ -48,7 +50,7 @@ public class DekRotationStepConfig {
 
   @Bean
   public RepositoryItemReader<Attachment> compromisedAttachmentReader(
-      AttachmentRepository repository) {
+          AttachmentRepository repository, ChecksumService checksumService) {
     return new RepositoryItemReaderBuilder<Attachment>()
         .name("compromisedAttachmentReader")
         .repository(repository)
@@ -60,7 +62,7 @@ public class DekRotationStepConfig {
 
   @Bean
   public ItemProcessor<Attachment, Attachment> dekRotationProcessor(
-      CryptoService crypto, KekService kekService, DekService dekService) {
+          CryptoService crypto, KekService kekService, DekService dekService, ChecksumService checksumService) {
 
     SecretKey activeKek = kekService.getActiveKek();
 
@@ -94,6 +96,7 @@ public class DekRotationStepConfig {
 
       // 6. Update metadata
       attachment.setEncryptedDek(encryptedNewDek);
+      attachment.setChecksum(checksumService.compute(path));
       attachment.setFileIv(newFileIv);
       attachment.setDekIv(newDekIv);
       attachment.setDekCompromised(false);

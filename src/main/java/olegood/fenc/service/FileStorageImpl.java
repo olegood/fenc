@@ -7,6 +7,7 @@ import java.util.UUID;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import lombok.RequiredArgsConstructor;
+import olegood.fenc.checksum.ChecksumService;
 import olegood.fenc.crypto.CryptoService;
 import olegood.fenc.crypto.DekService;
 import olegood.fenc.crypto.kek.KekService;
@@ -28,6 +29,8 @@ public class FileStorageImpl implements FileStorage {
   private final CryptoService cryptoService;
   private final DekService dekService;
   private final KekService kekService;
+
+  private final ChecksumService checksumService;
 
   @Override
   public UUID store(UUID documentId, MultipartFile file) throws Exception {
@@ -66,7 +69,8 @@ public class FileStorageImpl implements FileStorage {
             .setFileIv(fileIv)
             .setDekIv(dekIv)
             .setEncryptedDek(encryptedDek)
-            .setKekVersion(kekService.getActiveAlias());
+            .setKekVersion(kekService.getActiveAlias())
+            .setChecksum(checksumService.compute(encryptedContent));
 
     attachmentRepository.save(attachment);
     return attachment.getId();
@@ -79,6 +83,10 @@ public class FileStorageImpl implements FileStorage {
     Path location = Path.of(attachment.getLocation());
 
     try {
+      if (checksumService.compute(location) != attachment.getChecksum()) {
+        throw new IllegalStateException("Checksum mismatch");
+      }
+
       InputStream encryptedStream = Files.newInputStream(location);
       var dek =
           dekService.decryptDek(
