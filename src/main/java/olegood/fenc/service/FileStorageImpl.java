@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import olegood.fenc.checksum.ChecksumService;
 import olegood.fenc.crypto.CryptoService;
 import olegood.fenc.crypto.DekService;
-import olegood.fenc.crypto.kek.KekService;
+import olegood.fenc.crypto.kek.KeyStoreService;
 import olegood.fenc.domain.Attachment;
 import olegood.fenc.repository.AttachmentRepository;
 import olegood.fenc.repository.DocumentRepository;
@@ -28,7 +28,7 @@ public class FileStorageImpl implements FileStorage {
 
   private final CryptoService cryptoService;
   private final DekService dekService;
-  private final KekService kekService;
+  private final KeyStoreService keyStoreService;
 
   private final ChecksumService checksumService;
 
@@ -58,7 +58,7 @@ public class FileStorageImpl implements FileStorage {
     Files.write(location, encryptedContent);
 
     // 5. Encrypt DEK with KEK + DEK_IV
-    var encryptedDek = dekService.encryptDek(dek, kekService.getActiveKek(), dekIv);
+    var encryptedDek = dekService.encryptDek(dek, keyStoreService.getActiveKek(), dekIv);
 
     // 6. Persist metadata
     var attachment =
@@ -69,7 +69,7 @@ public class FileStorageImpl implements FileStorage {
             .setFileIv(fileIv)
             .setDekIv(dekIv)
             .setEncryptedDek(encryptedDek)
-            .setKekVersion(kekService.getActiveAlias())
+            .setKekVersion(keyStoreService.getActiveKekAlias())
             .setChecksum(checksumService.compute(encryptedContent));
 
     attachmentRepository.save(attachment);
@@ -90,7 +90,7 @@ public class FileStorageImpl implements FileStorage {
       InputStream encryptedStream = Files.newInputStream(location);
       var dek =
           dekService.decryptDek(
-              attachment.getEncryptedDek(), kekService.getActiveKek(), attachment.getDekIv());
+              attachment.getEncryptedDek(), keyStoreService.getActiveKek(), attachment.getDekIv());
 
       Cipher cipher = cryptoService.initCipher(Cipher.DECRYPT_MODE, dek, attachment.getFileIv());
       InputStream decryptedStream = new CipherInputStream(encryptedStream, cipher);

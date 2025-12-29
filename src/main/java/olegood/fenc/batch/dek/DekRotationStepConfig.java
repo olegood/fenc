@@ -10,7 +10,7 @@ import javax.crypto.SecretKey;
 import olegood.fenc.checksum.ChecksumService;
 import olegood.fenc.crypto.CryptoService;
 import olegood.fenc.crypto.DekService;
-import olegood.fenc.crypto.kek.KekService;
+import olegood.fenc.crypto.kek.KeyStoreService;
 import olegood.fenc.domain.Attachment;
 import olegood.fenc.repository.AttachmentRepository;
 import org.springframework.batch.core.repository.JobRepository;
@@ -62,9 +62,9 @@ public class DekRotationStepConfig {
 
   @Bean
   public ItemProcessor<Attachment, Attachment> dekRotationProcessor(
-          CryptoService crypto, KekService kekService, DekService dekService, ChecksumService checksumService) {
+          CryptoService crypto, KeyStoreService keyStoreService, DekService dekService, ChecksumService checksumService) {
 
-    SecretKey activeKek = kekService.getActiveKek();
+    SecretKey activeKek = keyStoreService.getActiveKek();
 
     return attachment -> {
 

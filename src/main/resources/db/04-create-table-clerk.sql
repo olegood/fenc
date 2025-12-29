@@ -1,0 +1,17 @@
+CREATE TABLE CLERK
+(
+    CLERK_ID     UUID PRIMARY KEY,
+    NAME         VARCHAR(255),
+    EMAIL        TEXT NOT NULL,
+    SSN          TEXT NOT NULL,
+
+    SEARCH_EMAIL VARCHAR(64),
+    SEARCH_SSN   VARCHAR(64)
+);
+
+CREATE INDEX idx_customer_search_email
+    ON CLERK (SEARCH_EMAIL);
+
+CREATE INDEX idx_customer_search_ssn
+    ON CLERK (SEARCH_SSN);
+

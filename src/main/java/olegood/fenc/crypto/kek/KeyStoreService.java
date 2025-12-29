@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
  * stored in the provided keystore.
  */
 @Service
-public class KekService {
+public class KeyStoreService {
 
   /**
    * Represents the {@link KeyStore} instance used for securely storing and managing cryptographic
@@ -25,24 +25,20 @@ public class KekService {
    */
   private final char[] password;
 
-  /**
-   * Represents the alias used to identify the Key Encryption Key (KEK) within the keystore. This
-   * alias is used to retrieve the active KEK securely from the keystore for cryptographic
-   * operations, including encrypting and decrypting Data Encryption Keys (DEKs).
-   */
-  private final String alias;
+  private final Alias alias;
 
-  public KekService(KekProperties kekProps) {
-    password = kekProps.password().toCharArray();
-    alias = kekProps.alias();
+  public KeyStoreService(KeyStoreProps keystore, Alias alias) {
+    password = keystore.password().toCharArray();
+    this.alias = alias;
 
-    try (var is = kekProps.location().getInputStream()) {
-      keyStore = KeyStore.getInstance(kekProps.keyStoreType());
+    try (var is = keystore.location().getInputStream()) {
+      keyStore = KeyStore.getInstance(keystore.type());
       keyStore.load(is, password);
 
-      loadKekByAlias(alias);
+      loadKekByAlias(alias.kek());
+      loadKekByAlias(alias.cek());
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to load KEK keystore: " + kekProps.location(), e);
+      throw new IllegalStateException("Failed to load KEK keystore: " + keystore.location(), e);
     }
   }
 
@@ -58,7 +54,7 @@ public class KekService {
    */
   public SecretKey getActiveKek() {
     try {
-      return loadKekByAlias(alias);
+      return loadKekByAlias(alias.kek());
     } catch (Exception e) {
       throw new IllegalStateException("Unable to load active KEK", e);
     }
@@ -71,23 +67,35 @@ public class KekService {
    *
    * @return the alias of the active KEK as a {@code String}.
    */
-  public String getActiveAlias() {
-    return alias;
+  public String getActiveKekAlias() {
+    return alias.kek();
+  }
+
+  public SecretKey getActiveCek() {
+    try {
+      return loadKekByAlias(alias.cek());
+    } catch (Exception e) {
+      throw new IllegalStateException("Unable to load active CEK", e);
+    }
+  }
+
+  public String getActiveCekAlias() {
+    return alias.cek();
   }
 
   public SecretKey loadKekByAlias(String alias) throws Exception {
     if (!keyStore.containsAlias(alias)) {
-      throw new IllegalStateException("KEK `" + alias + "` not found in keystore");
+      throw new IllegalStateException("Alias `" + alias + "` not found in keystore");
     }
 
     var key = keyStore.getKey(alias, password);
 
     if (!(key instanceof SecretKey kek)) {
-      throw new IllegalStateException("KEK is not a SecretKey");
+      throw new IllegalStateException("Alias `" + alias + "` is not a SecretKey");
     }
 
     if (!"AES".equals(kek.getAlgorithm())) {
-      throw new IllegalStateException("KEK algorithm must be AES");
+      throw new IllegalStateException("Alias `" + alias + "` algorithm must be AES");
     }
 
     if (kek.getEncoded().length != 32) {

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import javax.crypto.SecretKey;
 import olegood.fenc.crypto.DekService;
-import olegood.fenc.crypto.kek.KekService;
+import olegood.fenc.crypto.kek.KeyStoreService;
 import olegood.fenc.domain.Attachment;
 import olegood.fenc.repository.AttachmentRepository;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -62,14 +62,14 @@ public class KekRotationStepConfig {
   @Bean
   @StepScope
   public ItemProcessor<Attachment, Attachment> kekRotationProcessor(
-      KekService kekService,
+      KeyStoreService keyStoreService,
       DekService dekService,
       @Value("#{jobParameters['oldKekAlias']}") String oldAlias,
       @Value("#{jobParameters['newKekAlias']}") String newAlias)
       throws Exception {
 
-    SecretKey oldKek = kekService.loadKekByAlias(oldAlias);
-    SecretKey newKek = kekService.loadKekByAlias(newAlias);
+    SecretKey oldKek = keyStoreService.loadKekByAlias(oldAlias);
+    SecretKey newKek = keyStoreService.loadKekByAlias(newAlias);
 
     return attachment -> {
 

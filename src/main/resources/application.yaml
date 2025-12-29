@@ -9,11 +9,14 @@ spring:
     jdbc:
       initialize-schema: always
 crypto:
-  kek:
-    keystore-type: PKCS12
+  keystore:
+    type: PKCS12
     location: file:/opt/app/secrets/kek.p12
     password: ${KEK_STORE_PASSWORD}
-    alias: kek-2026-04
+  alias:
+    kek: kek-2026-04
+    cek: cek202512.1
+  search-key: ${SEARCH_KEY}
 logging:
   level:
     sun.rmi: OFF
